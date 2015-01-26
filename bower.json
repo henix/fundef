@@ -1,0 +1,20 @@
+{
+  "name": "fundef",
+  "main": "fundef.js",
+  "version": "0.1.0",
+  "authors": [
+    "henix <shellpick@gmail.com>"
+  ],
+  "description": "Curry a lot of ES5 built-in functions for convenient functional programming in JS",
+  "moduleType": [
+    "globals"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
