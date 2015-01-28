@@ -1,11 +1,11 @@
 {
   "name": "fundef",
   "main": "fundef.js",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authors": [
     "henix <shellpick@gmail.com>"
   ],
-  "description": "Curry a lot of ES5 built-in functions for convenient functional programming in JS",
+  "description": "Function combinators for ES5",
   "moduleType": [
     "globals"
   ],
