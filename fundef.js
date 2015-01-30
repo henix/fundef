@@ -1,6 +1,7 @@
 /**
  * fundef: Function combinators for ES5
  * Runtime Dependency: es5-shim
+ * License: MIT
  */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
