@@ -2,8 +2,51 @@
  * fundef: Function combinators for ES5
  * Runtime Dependency: es5-shim
  */
-var _, __;
-(function(_) {
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory();
+  } else {
+    var name;
+    if (document) {
+      var script = document.currentScript;
+      if (!script) {
+        var scripts = document.getElementsByTagName("script");
+        if (scripts.length) {
+          script = scripts[scripts.length-1];
+        }
+      }
+      if (script) {
+        name = script.getAttribute("name");
+      }
+    }
+    if (!name) {
+      name = "_";
+    }
+    root[name] = factory();
+  }
+}(this, function() {
+
+  var _ = function(this_f, name) {
+    var obj = null;
+    var argt = _.makeArray(arguments);
+    var f;
+    if (typeof this_f === 'function') {
+      f = this_f;
+      argt = argt.slice(1);
+    } else if (typeof name === 'string') {
+      obj = this_f;
+      f = obj[name];
+      argt = argt.slice(2);
+    } else {
+      throw new SyntaxError("arg1 must be function, or arg2 must be string");
+    }
+    return $newProp(null, function(stack) {
+      var args = $fillargs(argt, stack);
+      stack.push(f.apply(obj, args));
+    });
+  };
 
   /* Utils */
 
@@ -25,93 +68,9 @@ var _, __;
     return obj[name].bind.apply(obj[name], [obj].concat(args));
   };
 
-  /* Unary functions */
-
   _.identity = function(x) {
     return x;
   };
-
-  var ops = {
-    "not": function(a) { return !a },
-    "eq": function(a, b) { return a == b },
-    "ne": function(a, b) { return a != b },
-    "lt": function(a, b) { return a < b },
-    "gt": function(a, b) { return a > b }
-  };
-
-  // Properties
-  var properties = [
-    "length",
-    "textContent", "children"
-  ];
-  properties.forEach(function(name) {
-    _[name] = function(a) { return a[name]; };
-  });
-
-  // Functions
-  [
-    "hasOwnProperty",
-    "trim",
-    "getAttribute"
-  ].forEach(function(name) {
-    _[name] = function() {
-      var args = arguments;
-      return function(obj) {
-        return obj[name].apply(obj, args);
-      };
-    };
-  });
-
-  // Array/Object index
-  _._ = function(i) {
-    return function(ar) {
-      return ar[i];
-    };
-  };
-  _.__ = function(ar) {
-    return function(i) {
-      return ar[i];
-    };
-  };
-
-  _.isInstanceOf = function(f) {
-    return function(o) {
-      return o instanceof f;
-    };
-  };
-
-  _.invoke = function(name) {
-    var args = _.makeArray(arguments).slice(1);
-    return function(obj) {
-      return obj[name].apply(obj, args);
-    };
-  };
-
-  // unary ops
-  ["not"].forEach(function(name) {
-    _[name] = function(fn) {
-      return function(obj) {
-        if (fn != null) {
-          return ops[name](fn(obj));
-        } else {
-          return ops[name](obj);
-        }
-      };
-    };
-  });
-
-  // binary ops
-  ["eq", "ne", "lt", "gt"].forEach(function(name) {
-    _[name] = function(f_v, rv) {
-      return function(obj) {
-        if (rv != null) {
-          return ops[name](f_v(obj), rv);
-        } else {
-          return ops[name](obj, f_v);
-        }
-      };
-    };
-  });
 
   _.and = function() {
     var args = arguments;
@@ -138,36 +97,150 @@ var _, __;
     };
   };
 
-  /* Chains */
+  /* Basic functions */
 
-  function ProxyFunc(prev, func) {
-    this.prev = prev;
-    this.func = func;
+  var ops = {
+    "not": function(a) { return !a; },
+    "eq": function(a, b) { return a == b; },
+    "ne": function(a, b) { return a != b; },
+    "lt": function(a, b) { return a < b; },
+    "gt": function(a, b) { return a > b; },
 
-    if (func === _.textContent) {
-      this.length = new ProxyFunc(this, _.length);
-    } else if (func !== _.length && func !== _.children) {
-      properties.forEach(function(name) {
-        this[name] = new ProxyFunc(this, _[name]);
-      }, this);
+    "add": function(a, b) { return a + b; },
+    "sub": function(a, b) { return a - b; },
+    "mul": function(a, b) { return a * b; },
+    "div": function(a, b) { return a / b; },
+
+    "_": function(o, n) { return o[n]; },
+    "isInstanceOf": function(o, f) { return o instanceof f; }
+  };
+
+  function $evaluate(funcObj, stack) {
+    if (funcObj.prev) {
+      $evaluate(funcObj.prev, stack);
     }
-
-    var this1 = this;
-    this.$ = function(obj) {
-      function _apply(p) {
-        return p ? p.func(_apply(p.prev)) : obj;
-      }
-      return this1.func(_apply(this1.prev));
-    };
+    funcObj.func(stack);
   }
-  Object.keys(_).filter(_.not(_.bind({'makeArray':1,'bind':1,'and':1,'or':1}, 'hasOwnProperty'))).forEach(function(name) {
-    if (properties.indexOf(name) == -1) {
-      ProxyFunc.prototype[name] = function() {
-        return new ProxyFunc(this, _[name].apply(null, arguments));
-      };
-    }
+
+  function $fillargs(args, stack) {
+    return args.map(function(v) {
+      return v === _ ? stack.pop() : v;
+    });
+  }
+
+  var __ = {};
+
+  function unspecialize(name) {
+    return name.charAt(0) == "$" ? name.substring(1) : name;
+  }
+
+  // Properties
+  var properties = [
+    "$length",
+    "textContent", "children"
+  ];
+  properties.forEach(function(name) {
+    __[name] = function(stack) {
+      var obj = stack.pop();
+      stack.push(obj[unspecialize(name)]);
+    };
   });
 
-  __ = new ProxyFunc(null, _.identity);
+  // Functions
+  [
+    "hasOwnProperty",
+    "trim",
+    "reduce",
+    "getAttribute"
+  ].forEach(function(name) {
+    __[name] = function() {
+      var argt = _.makeArray(arguments);
+      return function(stack) {
+        var obj = stack.pop();
+        var args = $fillargs(argt, stack);
+        stack.push(obj[name].apply(obj, args));
+      };
+    };
+  });
 
-})(_ || (_ = {}));
+  // ops
+  [
+    "not", "eq", "ne", "lt", "gt",
+    "add", "sub", "mul", "div",
+    "_", "isInstanceOf"
+  ].forEach(function(name) {
+    __[name] = function(rvt) {
+      return function(stack) {
+        var obj = stack.pop();
+        var rv = rvt === _ ? stack.pop() : rvt;
+        stack.push(ops[name](obj, rv));
+      };
+    };
+  });
+
+  // swapped ops
+  ["_", "isInstanceOf"].forEach(function(name) {
+    __[name + "$"] = function(objt) {
+      return function(stack) {
+        var rv = stack.pop();
+        var obj = objt === _ ? stack.pop() : objt;
+        stack.push(ops[name](obj, rv));
+      };
+    };
+  });
+
+  __.invoke = function(name) {
+    var argt = _.makeArray(arguments);
+    return function(stack) {
+      var obj = stack.pop();
+      var args = $fillargs(argt, stack);
+      stack.push(obj[args[0]].apply(obj, args.slice(1)));
+    };
+  };
+
+  function $newFinal() {
+    var ret = function() {
+      var stack = _.makeArray(arguments).reverse();
+      $evaluate(ret, stack);
+      return stack.pop();
+    };
+    return ret;
+  }
+
+  function $newProp(prev, func) {
+    var ret = $newFinal();
+    ret.prev = prev;
+    ret.func = func;
+    $define(ret);
+    return ret;
+  }
+
+  function $define(funcObj) {
+
+    Object.keys(__).forEach(function(name) {
+      if (properties.indexOf(name) == -1) {
+        funcObj[name] = function() {
+          var ret = $newFinal();
+          ret.prev = this;
+          ret.func = __[name].apply(null, arguments);
+          $define(ret);
+          return ret;
+        };
+      }
+    });
+
+    if (funcObj.func === __.textContent || funcObj.func === __.children) {
+      funcObj.$length = $newProp(funcObj, __.$length);
+    } else if (funcObj.func !== __.$length) {
+      properties.forEach(function(name) {
+        funcObj[name] = $newProp(funcObj, __[name]);
+      });
+    }
+  }
+
+  _.func = function(){};
+  $define(_);
+
+  return _;
+
+}));
