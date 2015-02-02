@@ -1,6 +1,6 @@
-# fundef: Function combinators for ES5
+# lighty: Anonymous function combinator for ES5
 
-Based on ES5 and inspired by Scala, fundef aims at adding comfortable syntax for functional programming in JavaScript.
+Based on ES5 and inspired by Scala, lighty aims at providing comfortable syntax for creating anonymous functions in JavaScript.
 
 ## Example
 
@@ -12,13 +12,13 @@ How things are done in vanilla ES5:
 var urls = value.split("\n").map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
 ```
 
-This is how to do it in Scala:
+How things are done in Scala:
 
 ```scala
 val urls = value.split("\n").map(_.trim).filter(_.length > 0);
 ```
 
-With fundef, you can write JS code in Scala-style:
+With lighty, you can write JS code in Scala-style:
 
 ```js
 var urls = value.split("\n").map(_.trim()).filter(_.$length.gt(0));
@@ -32,7 +32,7 @@ Scala:
 val sum = List(1, 2, 3, 4).fold(0)(_ + _); // 10
 ```
 
-fundef:
+lighty:
 
 ```js
 var sum = [1, 2, 3, 4].reduce(_.add(_), 0); // 10

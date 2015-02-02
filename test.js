@@ -2,7 +2,7 @@ var assert;
 
 if (typeof require !== 'undefined') {
   assert = require('assert');
-  _ = require('./fundef.js');
+  _ = require('./lighty.js');
 } else {
   assert = QUnit.assert;
 }

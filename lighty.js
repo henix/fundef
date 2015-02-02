@@ -1,5 +1,5 @@
 /**
- * fundef: Function combinators for ES5
+ * lighty: Anonymous function combinator for ES5
  * Runtime Dependency: es5-shim
  * License: MIT
  */

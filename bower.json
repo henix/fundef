@@ -1,11 +1,11 @@
 {
-  "name": "fundef",
-  "main": "fundef.js",
+  "name": "lighty",
+  "main": "lighty.js",
   "version": "0.3.0",
   "authors": [
     "henix <shellpick@gmail.com>"
   ],
-  "description": "Function combinators for ES5",
+  "description": "Anonymous function combinator for ES5",
   "moduleType": [
     "globals"
   ],
