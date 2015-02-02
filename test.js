@@ -27,4 +27,6 @@ test("2-ary functions", function() {
 test("bind / partial", function() {
   var dict = { a: 1, b: 2 };
   assert.deepEqual(["a", "b", "c"].filter(_(dict, 'hasOwnProperty', _).not()), ["c"], "filter keys that is not in a dict");
+  var parse10 = _(parseInt, _, 10);
+  assert.equal(parse10("08"), 8, "partial a function");
 });
