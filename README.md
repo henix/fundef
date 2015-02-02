@@ -29,13 +29,13 @@ ex2: Sum an array
 Scala:
 
 ```scala
-val sum = List(1, 2, 3, 4).fold(0)(_ + _); // 10
+val sum = List(1, 2, 3, 4).fold(0)(_ + _);
 ```
 
 lighty:
 
 ```js
-var sum = [1, 2, 3, 4].reduce(_.add(_), 0); // 10
+var sum = [1, 2, 3, 4].reduce(_.add(_), 0);
 ```
 
 more example: see test.js
