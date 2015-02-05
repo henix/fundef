@@ -69,6 +69,12 @@
     return obj[name].bind.apply(obj[name], [obj].concat(args));
   };
 
+  _.$const = function(x) {
+    return function() {
+      return x;
+    }
+  }
+
   _.identity = function(x) {
     return x;
   };
@@ -106,6 +112,8 @@
     "ne": function(a, b) { return a != b; },
     "lt": function(a, b) { return a < b; },
     "gt": function(a, b) { return a > b; },
+    "ge": function(a, b) { return a >= b; },
+    "le": function(a, b) { return a <= b; },
 
     "add": function(a, b) { return a + b; },
     "sub": function(a, b) { return a - b; },
@@ -138,7 +146,8 @@
   // Properties
   var properties = [
     "$length",
-    "textContent", "children"
+    "textContent", "children",
+    "value", "checked"
   ];
   properties.forEach(function(name) {
     __[name] = function(stack) {
@@ -166,7 +175,7 @@
 
   // ops
   [
-    "not", "eq", "ne", "lt", "gt",
+    "not", "eq", "ne", "lt", "gt", "ge", "le",
     "add", "sub", "mul", "div",
     "_", "isInstanceOf"
   ].forEach(function(name) {
@@ -230,9 +239,9 @@
       }
     });
 
-    if (funcObj.func === __.textContent || funcObj.func === __.children) {
+    if (funcObj.func === __.textContent || funcObj.func === __.children || funcObj.func === __.value) {
       funcObj.$length = $newProp(funcObj, __.$length);
-    } else if (funcObj.func !== __.$length) {
+    } else if (funcObj.func !== __.$length && funcObj.func !== __.checked) {
       properties.forEach(function(name) {
         funcObj[name] = $newProp(funcObj, __[name]);
       });
